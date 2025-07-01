@@ -35,7 +35,7 @@ export default function LinkButton({ buttonType }) {
       </a>
     );
   }
- if (buttonType === "3D") {
+ if (buttonType === "2D") {
     return (
       <Link to="/change">
         <img
@@ -54,7 +54,7 @@ export default function LinkButton({ buttonType }) {
       </Link>
     );
   }
-   if (buttonType === "2D") {
+   if (buttonType === "3D") {
     return (
       <Link to="/">
         <img

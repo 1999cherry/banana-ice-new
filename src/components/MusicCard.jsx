@@ -1,14 +1,16 @@
-import  { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
+import html2canvas from 'html2canvas-pro';
+import jsPDF from 'jspdf';
 
 const price = [
-    { id: 1, name: '[필수] 연출', sub: '- 300,000', selected: false, price: '300000' },
+    { id: 1, name: '연출', required: true, sub: '- 300,000', selected: true, price: '300000' },
     { id: 2, name: '콘티 제작', sub: '- 200,000', selected: false, price: '200000' },
     { id: 3, name: '스토리보드 제작', sub: '- 400,000', selected: false, price: '400000' },
-    { id: 4, name: '[필수] 촬영', sub: '- 800,000', selected: true, price: '800000' },
+    { id: 4, name: '촬영', required: true, sub: '- 800,000', selected: true, price: '800000' },
     { id: 5, name: '시네마 카메라, 렌즈 사용(RED, ARRI)(1Day)', sub: '- 700,000', selected: false, price: '700000', className: 'ml-4' },
-    { id: 6, name: '[필수] 편집', sub: '- 400,000', selected: true, price: '400000' },
-    { id: 7, name: '[필수] 색보정', sub: '- 200,000', selected: true, price: '200000', className: 'ml-4' },
-    { id: 8, name: 'VFX', selected: false, price: '0', className: 'mt-4'},
+    { id: 6, name: '편집', required: true, sub: '- 400,000', selected: true, price: '400000' },
+    { id: 7, name: '색보정', required: true, sub: '- 200,000', selected: true, price: '200000', className: 'ml-4' },
+    { id: 8, name: 'VFX', selected: false, price: '0', className: 'mt-4' },
     { id: 9, name: '2D', sub: '- 300,000', selected: false, price: '300000', className: 'ml-4' },
     { id: 10, name: '3D', sub: '- 400,000', selected: false, price: '400000', className: 'ml-4' },
     { id: 11, name: 'AI', sub: '- 600,000', selected: false, price: '600000', className: 'ml-4' },
@@ -18,6 +20,7 @@ const price = [
 ];
 
 const defaultTime = 120;
+const REQUIRED_LABEL = '[필수]';
 
 export default function MusicCard() {
     const [selectedPrice, setSelectedPrice] = useState(price);
@@ -50,8 +53,32 @@ export default function MusicCard() {
         setSec(inputSec);
     };
 
+    const handleDownloadPDF = async () => {
+        const element = document.getElementById('quote-card'); // 캡처할 영역
+        if (!element) return;
+
+        const canvas = await html2canvas(element, {
+            scale: 2,
+            useCORS: true,
+            backgroundColor: '#ffffff',
+        });
+
+        const imgData = canvas.toDataURL('image/png');
+        const pdf = new jsPDF('p', 'mm', 'a4');
+
+        const pageWidth = pdf.internal.pageSize.getWidth();
+        const pageHeight = pdf.internal.pageSize.getHeight();
+
+        const imgWidth = pageWidth;
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+        pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+        pdf.save('bananaice-견적서.pdf');
+    };
+
+
     return (
-        <div className="divide-y divide-gray-200 overflow-hidden rounded-lg bg-white shadow">
+        <div id="quote-card"  className="divide-y divide-gray-200 overflow-hidden rounded-lg bg-white shadow">
             <div className="px-4 py-5 sm:p-6">
                 <fieldset>
                     <legend className="text-base font-semibold text-gray-900">BANANA ICE MUSIC VIDEO</legend>
@@ -60,42 +87,43 @@ export default function MusicCard() {
                             <div key={priceIdx} className={`relative flex gap-3 py-4 ${price.className || ''}`}>
                                 <div className="min-w-0 flex-1 text-sm/6">
                                     <label htmlFor={`person-${price.id}`} className="select-none font-medium text-gray-900">
+                                        {price.required && <span className="font-bold text-red-600 mr-1">{REQUIRED_LABEL}</span>}
                                         <span className="font-bold">{price.name}</span> {price.sub}
                                     </label>
                                 </div>
                                 {price.name !== 'VFX' && (
-                                <div className="flex h-6 shrink-0 items-center">
-                                    <div className="group grid size-4 grid-cols-1">
-                                        <input
-                                            checked={price.selected}
-                                            onChange={() => handleCheckboxChange(price.id)}
-                                            id={`person-${price.id}`}
-                                            name={`person-${price.id}`}
-                                            type="checkbox"
-                                            className="col-start-1 row-start-1 appearance-none rounded border border-gray-300 bg-white checked:border-[#FEB81D] checked:bg-[#FEB81D] indeterminate:border-[#FEB81D] indeterminate:bg-[#FEB81D] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#FEB81D] disabled:border-gray-300 disabled:bg-gray-100 disabled:checked:bg-gray-100 forced-colors:appearance-auto"
-                                        />
-                                        <svg
-                                            fill="none"
-                                            viewBox="0 0 14 14"
-                                            className="pointer-events-none col-start-1 row-start-1 size-3.5 self-center justify-self-center stroke-white group-has-[:disabled]:stroke-gray-950/25"
-                                        >
-                                            <path
-                                                d="M3 8L6 11L11 3.5"
-                                                strokeWidth={2}
-                                                strokeLinecap="round"
-                                                strokeLinejoin="round"
-                                                className="opacity-0 group-has-[:checked]:opacity-100"
+                                    <div className="flex h-6 shrink-0 items-center">
+                                        <div className="group grid size-4 grid-cols-1">
+                                            <input
+                                                checked={price.selected}
+                                                onChange={() => handleCheckboxChange(price.id)}
+                                                id={`person-${price.id}`}
+                                                name={`person-${price.id}`}
+                                                type="checkbox"
+                                                className="col-start-1 row-start-1 appearance-none rounded border border-gray-300 bg-white checked:border-[#FEB81D] checked:bg-[#FEB81D] indeterminate:border-[#FEB81D] indeterminate:bg-[#FEB81D] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#FEB81D] disabled:border-gray-300 disabled:bg-gray-100 disabled:checked:bg-gray-100 forced-colors:appearance-auto"
                                             />
-                                            <path
-                                                d="M3 7H11"
-                                                strokeWidth={2}
-                                                strokeLinecap="round"
-                                                strokeLinejoin="round"
-                                                className="opacity-0 group-has-[:indeterminate]:opacity-100"
-                                            />
-                                        </svg>
+                                            <svg
+                                                fill="none"
+                                                viewBox="0 0 14 14"
+                                                className="pointer-events-none col-start-1 row-start-1 size-3.5 self-center justify-self-center stroke-white group-has-[:disabled]:stroke-gray-950/25"
+                                            >
+                                                <path
+                                                    d="M3 8L6 11L11 3.5"
+                                                    strokeWidth={2}
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
+                                                    className="opacity-0 group-has-[:checked]:opacity-100"
+                                                />
+                                                <path
+                                                    d="M3 7H11"
+                                                    strokeWidth={2}
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
+                                                    className="opacity-0 group-has-[:indeterminate]:opacity-100"
+                                                />
+                                            </svg>
+                                        </div>
                                     </div>
-                                </div>
                                 )}</div>
                         ))}
                     </div>
@@ -122,7 +150,12 @@ export default function MusicCard() {
                             </div>
                         </div>
                     </div>
-                    <span className="font-bold">{totalSum.toLocaleString()} 원</span>
+                    <div className="flex items-center justify-between gap-x-4">
+                        <span className="font-bold text-base">{totalSum.toLocaleString()} 원</span>
+                        <button onClick={handleDownloadPDF} className="ml-2 rounded-2xl bg-[#FEB81D] px-4 py-2 text-white text-sm font-semibold">
+                            견적 다운받기
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
